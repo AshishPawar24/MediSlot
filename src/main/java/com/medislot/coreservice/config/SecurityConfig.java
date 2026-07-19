@@ -56,6 +56,7 @@ public class SecurityConfig {
                                 "/api/auth/refresh", "/api/auth/logout").permitAll()
                         .requestMatchers("/api/patient/**").hasRole("PATIENT")
                         .requestMatchers("/api/doctor/**").hasRole("DOCTOR")
+                        .requestMatchers("/api/search/**").hasRole("PATIENT")
                         .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider())
