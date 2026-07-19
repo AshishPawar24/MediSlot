@@ -45,13 +45,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 UserDetails userDetails = userDetailsService.loadUserByUsername(email);
 
                 if (jwtService.isTokenValid(jwt, userDetails)) {
-                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                            userDetails, null, userDetails.getAuthorities());
+                    // Spring Security 7 recommended style: explicit factory method
+                    // for building an already-authenticated token.
+                    UsernamePasswordAuthenticationToken authToken =
+                            UsernamePasswordAuthenticationToken.authenticated(
+                                    userDetails, null, userDetails.getAuthorities());
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                 }
             }
-        } catch (ExpiredJwtException ex) {
+        }  catch (ExpiredJwtException ex) {
             // Token has expired.
             // Leave SecurityContext empty.
         }

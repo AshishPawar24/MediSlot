@@ -54,7 +54,7 @@ public class AuthServiceImpl implements AuthService {
     public AuthenticationResponse login(LoginRequest request) {
         try {
             authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
+                    UsernamePasswordAuthenticationToken.unauthenticated(request.getEmail(), request.getPassword())
             );
         } catch (BadCredentialsException ex) {
             throw new InvalidCredentialsException("Invalid email or password");
