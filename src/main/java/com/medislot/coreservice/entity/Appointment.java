@@ -1,50 +1,46 @@
 package com.medislot.coreservice.entity;
 
-import com.medislot.coreservice.enums.SlotStatus;
+import com.medislot.coreservice.enums.AppointmentStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 
 @Entity
-@Table(name = "appointment_slots")
+@Table(name = "appointments")
 @EntityListeners(AuditingEntityListener.class)
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class AppointmentSlot {
+public class Appointment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "patient_profile_id", nullable = false)
+    private PatientProfile patientProfile;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "doctor_profile_id", nullable = false)
     private DoctorProfile doctorProfile;
 
-    @Column(nullable = false)
-    private LocalDate appointmentDate;
-
-    @Column(nullable = false)
-    private LocalTime startTime;
-
-    @Column(nullable = false)
-    private LocalTime endTime;
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "appointment_slot_id", nullable = false, unique = true)
+    private AppointmentSlot appointmentSlot;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private SlotStatus slotStatus;
+    private AppointmentStatus appointmentStatus;
 
-    @Version
     @Column(nullable = false)
-    private Long version;
+    private LocalDateTime bookingTime;
 
     @CreatedDate
     @Column(nullable = false, updatable = false)
