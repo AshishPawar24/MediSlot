@@ -54,9 +54,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/register", "/api/auth/login",
                                 "/api/auth/refresh", "/api/auth/logout").permitAll()
+                        .requestMatchers("/api/webhook/**").permitAll()
                         .requestMatchers("/api/patient/**").hasRole("PATIENT")
                         .requestMatchers("/api/doctor/**").hasRole("DOCTOR")
-                        .requestMatchers("/api/search/**").hasRole("PATIENT")
                         .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider())

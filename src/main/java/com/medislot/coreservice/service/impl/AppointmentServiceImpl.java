@@ -1,4 +1,3 @@
-// service/impl/AppointmentServiceImpl.java
 package com.medislot.coreservice.service.impl;
 
 import com.medislot.coreservice.dto.request.AppointmentBookingRequest;
@@ -58,7 +57,6 @@ public class AppointmentServiceImpl implements AppointmentService {
         try {
             appointmentSlotRepository.saveAndFlush(slot);
         } catch (ObjectOptimisticLockingFailureException ex) {
-            // Another request booked this slot first — version mismatch on update
             throw new SlotAlreadyBookedException("Slot already booked.");
         }
 
@@ -66,7 +64,7 @@ public class AppointmentServiceImpl implements AppointmentService {
                 .patientProfile(patientProfile)
                 .doctorProfile(slot.getDoctorProfile())
                 .appointmentSlot(slot)
-                .appointmentStatus(AppointmentStatus.BOOKED)
+                .appointmentStatus(AppointmentStatus.PENDING_PAYMENT)
                 .bookingTime(LocalDateTime.now())
                 .build();
 
