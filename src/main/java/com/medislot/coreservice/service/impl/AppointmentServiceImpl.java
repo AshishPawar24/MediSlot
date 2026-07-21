@@ -1,7 +1,9 @@
 package com.medislot.coreservice.service.impl;
 
 import com.medislot.coreservice.dto.request.AppointmentBookingRequest;
+import com.medislot.coreservice.dto.request.UpdateAppointmentStatusRequest;
 import com.medislot.coreservice.dto.response.AppointmentResponse;
+import com.medislot.coreservice.dto.response.AppointmentStatusResponse;
 import com.medislot.coreservice.dto.response.DoctorAppointmentResponse;
 import com.medislot.coreservice.dto.response.PatientAppointmentResponse;
 import com.medislot.coreservice.entity.Appointment;
@@ -11,6 +13,8 @@ import com.medislot.coreservice.entity.PatientProfile;
 import com.medislot.coreservice.entity.User;
 import com.medislot.coreservice.enums.AppointmentStatus;
 import com.medislot.coreservice.enums.SlotStatus;
+import com.medislot.coreservice.exception.AppointmentNotFoundException;
+import com.medislot.coreservice.exception.InvalidAppointmentStatusException;
 import com.medislot.coreservice.exception.ProfileNotFoundException;
 import com.medislot.coreservice.exception.SlotAlreadyBookedException;
 import com.medislot.coreservice.exception.SlotNotFoundException;
@@ -26,6 +30,7 @@ import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -87,6 +92,59 @@ public class AppointmentServiceImpl implements AppointmentService {
     public List<DoctorAppointmentResponse> getDoctorAppointments() {
         DoctorProfile doctorProfile = getCurrentDoctorProfile();
         return appointmentRepository.findByDoctorProfileIdOrderByBookingTimeDesc(doctorProfile.getId())
+                .stream()
+                .map(appointmentMapper::toDoctorResponse)
+                .toList();
+    }
+
+    @Override
+    @Transactional
+    public AppointmentStatusResponse updateAppointmentStatus(UpdateAppointmentStatusRequest request) {
+        DoctorProfile doctorProfile = getCurrentDoctorProfile();
+
+        if (request.getStatus() != AppointmentStatus.COMPLETED
+                && request.getStatus() != AppointmentStatus.CANCELLED
+                && request.getStatus() != AppointmentStatus.NO_SHOW) {
+            throw new InvalidAppointmentStatusException(
+                    "Status must be one of: COMPLETED, CANCELLED, NO_SHOW");
+        }
+
+        Appointment appointment = appointmentRepository.findById(request.getAppointmentId())
+                .orElseThrow(() -> new AppointmentNotFoundException(
+                        "Appointment not found with id: " + request.getAppointmentId()));
+
+        if (!appointment.getDoctorProfile().getId().equals(doctorProfile.getId())) {
+            throw new AppointmentNotFoundException(
+                    "Appointment not found with id: " + request.getAppointmentId());
+        }
+
+        if (appointment.getAppointmentStatus() != AppointmentStatus.CONFIRMED) {
+            throw new InvalidAppointmentStatusException(
+                    "Cannot update appointment. Current status is " + appointment.getAppointmentStatus()
+                            + ", only CONFIRMED appointments can be updated.");
+        }
+
+        appointment.setAppointmentStatus(request.getStatus());
+        Appointment updated = appointmentRepository.save(appointment);
+
+        return appointmentMapper.toStatusResponse(updated);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<DoctorAppointmentResponse> filterAppointments(String statusParam, LocalDate date) {
+        DoctorProfile doctorProfile = getCurrentDoctorProfile();
+
+        AppointmentStatus status = null;
+        if (statusParam != null && !statusParam.isBlank()) {
+            try {
+                status = AppointmentStatus.valueOf(statusParam.toUpperCase());
+            } catch (IllegalArgumentException ex) {
+                throw new InvalidAppointmentStatusException("Invalid status: " + statusParam);
+            }
+        }
+
+        return appointmentRepository.filterAppointments(doctorProfile.getId(), status, date)
                 .stream()
                 .map(appointmentMapper::toDoctorResponse)
                 .toList();

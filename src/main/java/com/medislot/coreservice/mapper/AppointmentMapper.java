@@ -1,6 +1,7 @@
 package com.medislot.coreservice.mapper;
 
 import com.medislot.coreservice.dto.response.AppointmentResponse;
+import com.medislot.coreservice.dto.response.AppointmentStatusResponse;
 import com.medislot.coreservice.dto.response.DoctorAppointmentResponse;
 import com.medislot.coreservice.dto.response.PatientAppointmentResponse;
 import com.medislot.coreservice.entity.Appointment;
@@ -32,4 +33,8 @@ public interface AppointmentMapper {
     @Mapping(target = "startTime", source = "appointmentSlot.startTime")
     @Mapping(target = "endTime", source = "appointmentSlot.endTime")
     DoctorAppointmentResponse toDoctorResponse(Appointment appointment);
+
+    @Mapping(target = "appointmentId", source = "id")
+    @Mapping(target = "status", source = "appointmentStatus")
+    AppointmentStatusResponse toStatusResponse(Appointment appointment);
 }
