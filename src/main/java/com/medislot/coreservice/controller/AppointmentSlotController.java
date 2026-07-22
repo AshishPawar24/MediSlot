@@ -31,7 +31,7 @@ public class AppointmentSlotController {
     @DeleteMapping("/api/doctor/slots/{slotId}")
     public ResponseEntity<Void> deleteSlot(@PathVariable Long slotId) {
         appointmentSlotService.deleteSlot(slotId);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/api/patient/doctors/{doctorId}/slots")

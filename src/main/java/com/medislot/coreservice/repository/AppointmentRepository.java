@@ -11,10 +11,23 @@ import java.util.List;
 
 public interface AppointmentRepository extends JpaRepository<Appointment, Long> {
 
-    List<Appointment> findByPatientProfileIdOrderByBookingTimeDesc(Long patientProfileId);
-    List<Appointment> findByDoctorProfileIdOrderByBookingTimeDesc(Long doctorProfileId);
+    @Query("SELECT a FROM Appointment a " +
+            "JOIN FETCH a.doctorProfile " +
+            "JOIN FETCH a.appointmentSlot " +
+            "WHERE a.patientProfile.id = :patientProfileId " +
+            "ORDER BY a.bookingTime DESC")
+    List<Appointment> findByPatientProfileIdWithDetails(@Param("patientProfileId") Long patientProfileId);
 
     @Query("SELECT a FROM Appointment a " +
+            "JOIN FETCH a.patientProfile " +
+            "JOIN FETCH a.appointmentSlot " +
+            "WHERE a.doctorProfile.id = :doctorProfileId " +
+            "ORDER BY a.bookingTime DESC")
+    List<Appointment> findByDoctorProfileIdWithDetails(@Param("doctorProfileId") Long doctorProfileId);
+
+    @Query("SELECT a FROM Appointment a " +
+            "JOIN FETCH a.patientProfile " +
+            "JOIN FETCH a.appointmentSlot " +
             "WHERE a.doctorProfile.id = :doctorProfileId " +
             "AND (:status IS NULL OR a.appointmentStatus = :status) " +
             "AND (:date IS NULL OR a.appointmentSlot.appointmentDate = :date) " +

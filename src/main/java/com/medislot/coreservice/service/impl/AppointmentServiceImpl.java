@@ -81,7 +81,7 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Transactional(readOnly = true)
     public List<PatientAppointmentResponse> getPatientAppointments() {
         PatientProfile patientProfile = getCurrentPatientProfile();
-        return appointmentRepository.findByPatientProfileIdOrderByBookingTimeDesc(patientProfile.getId())
+        return appointmentRepository.findByPatientProfileIdWithDetails(patientProfile.getId())
                 .stream()
                 .map(appointmentMapper::toPatientResponse)
                 .toList();
@@ -91,7 +91,7 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Transactional(readOnly = true)
     public List<DoctorAppointmentResponse> getDoctorAppointments() {
         DoctorProfile doctorProfile = getCurrentDoctorProfile();
-        return appointmentRepository.findByDoctorProfileIdOrderByBookingTimeDesc(doctorProfile.getId())
+        return appointmentRepository.findByDoctorProfileIdWithDetails(doctorProfile.getId())
                 .stream()
                 .map(appointmentMapper::toDoctorResponse)
                 .toList();
